@@ -1,0 +1,1279 @@
+---
+title: "Untitled"
+author: "Abanather Negusu & Claire Phibbs"
+date: "2022-11-19"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+# Appendix Code
+
+## Loading in Libraries 
+```{r warning=FALSE}
+# cleaning the memory
+rm(list = ls())
+# libraries
+library(ggplot2)
+
+library(tidyr)
+library(plyr)
+library(dplyr)
+library(forecast)
+library(lubridate)
+library(data.table)
+#install.packages('corrplot')
+library(corrplot)
+library(chron)
+library(fpp2)
+require(gridExtra)
+```
+
+## Loading in all 3 data sets
+```{r}
+Sales_df <- read.csv("/Users/clairephibbs/Desktop/ADS 506 Applied Time Series Analysis/Final Project/sales data-set.csv")
+
+Feature_df <- read.csv("/Users/clairephibbs/Desktop/ADS 506 Applied Time Series Analysis/Final Project/Features data set.csv")
+
+Stores_df <- read.csv("/Users/clairephibbs/Desktop/ADS 506 Applied Time Series Analysis/Final Project/stores data-set.csv")
+```
+
+### Sales Data
+```{r}
+# change the variable into appropriate type
+Sales_df <-
+  Sales_df %>%
+  mutate(Store = as.factor(Store),
+         Dept = as.factor(Dept),
+         IsHoliday = as.factor(IsHoliday),
+         Date = as.Date(Date, "%d/%m/%Y"))
+
+# removing the nenagive sales
+Sales_df <- Sales_df %>%
+  filter(Weekly_Sales >= 0)
+```
+
+### Feature Data
+```{r}
+Feature_df <-
+  Feature_df %>%
+  mutate(Store = as.factor(Store),
+         IsHoliday = as.factor(IsHoliday),
+         Date = as.Date(Date, "%d/%m/%Y"))
+```
+
+### Combining Sales and Feature Data
+```{r}
+df <- Sales_df %>%inner_join(Feature_df) %>%
+  select(c(1:7, 13:14), Weekly_Sales)
+# attaching the data
+
+attach(df)
+
+# reformatting date to 2 digit years
+df$Date <- as.character(df$Date, format = '%m/%d/%y')
+
+```
+
+### Store Data
+```{r}
+Stores_df <-
+  Stores_df %>%
+  mutate(Store = as.factor(Store))
+```
+
+## Exploratory Data Analysis (EDA):
+
+#### From this point forwards only working with Store 1 data.
+
+### Time Series Objects for the Weekly_Sales
+```{r}
+# separating departments of store 1 and creating time series objects 
+store_1.1 <- df[1:143, ]
+store_1.1_ts <- ts(store_1.1$Weekly_Sales, start = c(2010), frequency = 52)
+
+store_1.2 <- df[144:286, ]
+store_1.2_ts <- ts(store_1.2$Weekly_Sales, start = c(2010), frequency = 52)
+
+store_1.3 <- df[287:429, ]
+store_1.3_ts <- ts(store_1.3$Weekly_Sales, start = c(2010), frequency = 52)
+
+store_1.4 <- df[430:572, ]
+store_1.4_ts <- ts(store_1.4$Weekly_Sales, start = c(2010), frequency = 52)
+
+store_1.5 <- df[573:715, ]
+store_1.5_ts <- ts(store_1.5$Weekly_Sales, start = c(2010), frequency = 52)
+
+store_1.6 <- df[715:857, ]
+store_1.6_ts <- ts(store_1.6$Weekly_Sales, start = c(2010), frequency = 52)
+
+store_1.7 <- df[858:1000, ]
+store_1.7_ts <- ts(store_1.7$Weekly_Sales, start = c(2010), frequency = 52)
+
+store_1.8 <- df[1001:1143, ]
+store_1.8_ts <- ts(store_1.8$Weekly_Sales, start = c(2010), frequency = 52)
+
+store_1.9 <- df[1144:1286, ]
+store_1.9_ts <- ts(store_1.9$Weekly_Sales, start = c(2010), frequency = 52)
+
+store_1.10 <- df[1287:1429, ]
+store_1.10_ts <- ts(store_1.10$Weekly_Sales, start = c(2010), frequency = 52)
+
+store_1.11 <- df[1430:1572, ]
+store_1.11_ts <- ts(store_1.11$Weekly_Sales, start = c(2010), frequency = 52)
+
+store_1.12 <- df[1573:1715, ]
+store_1.12_ts <- ts(store_1.12$Weekly_Sales, start = c(2010), frequency = 52)
+
+store_1.13 <- df[1716:1858, ]
+store_1.13_ts <- ts(store_1.13$Weekly_Sales, start = c(2010), frequency = 52)
+```
+
+### Time Plots of Store 1 Department 1-13 Weekly Sales
+```{r}
+autoplot(store_1.1_ts) +
+  labs(title = "Dept. 1 Time Plot Weekly_Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+
+autoplot(store_1.2_ts) +
+  labs(title = "Dept. 2 Time Plot Weekly_Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+
+autoplot(store_1.3_ts) +
+  labs(title = "Dept. 3 Time Plot Weekly_Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+
+autoplot(store_1.4_ts) +
+  labs(title = "Dept. 4 Time Plot Weekly_Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+
+autoplot(store_1.5_ts) +
+  labs(title = "Dept. 5 Time Plot Weekly_Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+
+autoplot(store_1.6_ts) +
+  labs(title = "Dept. 6 Time Plot Weekly_Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+
+autoplot(store_1.7_ts) +
+  labs(title = "Dept. 7 Time Plot Weekly_Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+
+autoplot(store_1.8_ts) +
+  labs(title = "Dept. 8 Time Plot Weekly_Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+
+autoplot(store_1.9_ts) +
+  labs(title = "Dept. 9 Time Plot Weekly_Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+
+autoplot(store_1.10_ts) +
+  labs(title = "Dept. 10 Time Plot Weekly_Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+
+autoplot(store_1.11_ts) +
+  labs(title = "Dept. 11 Time Plot Weekly_Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+
+autoplot(store_1.12_ts) +
+  labs(title = "Dept. 12 Time Plot Weekly_Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+
+autoplot(store_1.13_ts) +
+  labs(title = "Dept. 13 Time Plot Weekly_Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+### Scatter Plots of Each Departments Weekly_Sales vs. Unemployment/CPI/Temperature/Unemployment 
+```{r}
+scatter_1.1.1 <- ggplot(store_1.1, aes(x = Temperature, y = Weekly_Sales)) +
+  ggtitle("Temperature vs Weekly Sales") +
+  geom_point()
+
+scatter_1.1.2 <- ggplot(store_1.1, aes(x = Fuel_Price, y = Weekly_Sales)) +
+  ggtitle("Fuel Price vs Weekly Sales") +
+  geom_point()
+
+scatter_1.1.3 <- ggplot(store_1.1, aes(x = CPI, y = Weekly_Sales)) +
+  ggtitle("CPI vs Weekly Sales") +
+  geom_point()
+
+scatter_1.1.4 <- ggplot(store_1.1, aes(x = Unemployment, y = Weekly_Sales)) +
+  ggtitle("Unemployment vs Weekly Sales") +
+  geom_point()
+
+grid.arrange(scatter_1.1.1, scatter_1.1.2, scatter_1.1.3, scatter_1.1.4)
+
+scatter_1.2.1 <- ggplot(store_1.2, aes(x = Temperature, y = Weekly_Sales)) +
+  ggtitle("Temperature vs Weekly Sales") +
+  geom_point()
+
+scatter_1.2.2 <- ggplot(store_1.2, aes(x = Fuel_Price, y = Weekly_Sales)) +
+  ggtitle("Fuel Price vs Weekly Sales") +
+  geom_point()
+
+scatter_1.2.3 <- ggplot(store_1.2, aes(x = CPI, y = Weekly_Sales)) +
+  ggtitle("CPI vs Weekly Sales") +
+  geom_point()
+
+scatter_1.2.4 <- ggplot(store_1.2, aes(x = Unemployment, y = Weekly_Sales)) +
+  ggtitle("Unemployment vs Weekly Sales") +
+  geom_point()
+
+grid.arrange(scatter_1.2.1, scatter_1.2.2, scatter_1.2.3, scatter_1.2.4)
+
+scatter_1.3.1 <- ggplot(store_1.3, aes(x = Temperature, y = Weekly_Sales)) +
+  ggtitle("Temperature vs Weekly Sales") +
+  geom_point()
+
+scatter_1.3.2 <- ggplot(store_1.3, aes(x = Fuel_Price, y = Weekly_Sales)) +
+  ggtitle("Fuel Price vs Weekly Sales") +
+  geom_point()
+
+scatter_1.3.3 <- ggplot(store_1.3, aes(x = CPI, y = Weekly_Sales)) +
+  ggtitle("CPI vs Weekly Sales") +
+  geom_point()
+
+scatter_1.3.4 <- ggplot(store_1.3, aes(x = Unemployment, y = Weekly_Sales)) +
+  ggtitle("Unemployment vs Weekly Sales") +
+  geom_point()
+
+grid.arrange(scatter_1.3.1, scatter_1.3.2, scatter_1.3.3, scatter_1.3.4)
+
+scatter_1.4.1 <- ggplot(store_1.4, aes(x = Temperature, y = Weekly_Sales)) +
+  ggtitle("Temperature vs Weekly Sales") +
+  geom_point()
+
+scatter_1.4.2 <- ggplot(store_1.4, aes(x = Fuel_Price, y = Weekly_Sales)) +
+  ggtitle("Fuel Price vs Weekly Sales") +
+  geom_point()
+
+scatter_1.4.3 <- ggplot(store_1.4, aes(x = CPI, y = Weekly_Sales)) +
+  ggtitle("CPI vs Weekly Sales") +
+  geom_point()
+
+scatter_1.4.4 <- ggplot(store_1.4, aes(x = Unemployment, y = Weekly_Sales)) +
+  ggtitle("Unemployment vs Weekly Sales") +
+  geom_point()
+
+grid.arrange(scatter_1.4.1, scatter_1.4.2, scatter_1.4.3, scatter_1.4.4)
+
+scatter_1.5.1 <- ggplot(store_1.5, aes(x = Temperature, y = Weekly_Sales)) +
+  ggtitle("Temperature vs Weekly Sales") +
+  geom_point()
+
+scatter_1.5.2 <- ggplot(store_1.5, aes(x = Fuel_Price, y = Weekly_Sales)) +
+  ggtitle("Fuel Price vs Weekly Sales") +
+  geom_point()
+
+scatter_1.5.3 <- ggplot(store_1.5, aes(x = CPI, y = Weekly_Sales)) +
+  ggtitle("CPI vs Weekly Sales") +
+  geom_point()
+
+scatter_1.5.4 <- ggplot(store_1.5, aes(x = Unemployment, y = Weekly_Sales)) +
+  ggtitle("Unemployment vs Weekly Sales") +
+  geom_point()
+
+grid.arrange(scatter_1.5.1, scatter_1.5.2, scatter_1.5.3, scatter_1.5.4)
+
+scatter_1.6.1 <- ggplot(store_1.6, aes(x = Temperature, y = Weekly_Sales)) +
+  ggtitle("Temperature vs Weekly Sales") +
+  geom_point()
+
+scatter_1.6.2 <- ggplot(store_1.6, aes(x = Fuel_Price, y = Weekly_Sales)) +
+  ggtitle("Fuel Price vs Weekly Sales") +
+  geom_point()
+
+scatter_1.6.3 <- ggplot(store_1.6, aes(x = CPI, y = Weekly_Sales)) +
+  ggtitle("CPI vs Weekly Sales") +
+  geom_point()
+
+scatter_1.6.4 <- ggplot(store_1.6, aes(x = Unemployment, y = Weekly_Sales)) +
+  ggtitle("Unemployment vs Weekly Sales") +
+  geom_point()
+
+grid.arrange(scatter_1.6.1, scatter_1.6.2, scatter_1.6.3, scatter_1.6.4)
+
+scatter_1.7.1 <- ggplot(store_1.7, aes(x = Temperature, y = Weekly_Sales)) +
+  ggtitle("Temperature vs Weekly Sales") +
+  geom_point()
+
+scatter_1.7.2 <- ggplot(store_1.7, aes(x = Fuel_Price, y = Weekly_Sales)) +
+  ggtitle("Fuel Price vs Weekly Sales") +
+  geom_point()
+
+scatter_1.7.3 <- ggplot(store_1.7, aes(x = CPI, y = Weekly_Sales)) +
+  ggtitle("CPI vs Weekly Sales") +
+  geom_point()
+
+scatter_1.7.4 <- ggplot(store_1.7, aes(x = Unemployment, y = Weekly_Sales)) +
+  ggtitle("Unemployment vs Weekly Sales") +
+  geom_point()
+
+grid.arrange(scatter_1.7.1, scatter_1.7.2, scatter_1.7.3, scatter_1.7.4)
+
+scatter_1.8.1 <- ggplot(store_1.8, aes(x = Temperature, y = Weekly_Sales)) +
+  ggtitle("Temperature vs Weekly Sales") +
+  geom_point()
+
+scatter_1.8.2 <- ggplot(store_1.8, aes(x = Fuel_Price, y = Weekly_Sales)) +
+  ggtitle("Fuel Price vs Weekly Sales") +
+  geom_point()
+
+scatter_1.8.3 <- ggplot(store_1.8, aes(x = CPI, y = Weekly_Sales)) +
+  ggtitle("CPI vs Weekly Sales") +
+  geom_point()
+
+scatter_1.8.4 <- ggplot(store_1.8, aes(x = Unemployment, y = Weekly_Sales)) +
+  ggtitle("Unemployment vs Weekly Sales") +
+  geom_point()
+
+grid.arrange(scatter_1.8.1, scatter_1.8.2, scatter_1.8.3, scatter_1.8.4)
+
+scatter_1.9.1 <- ggplot(store_1.9, aes(x = Temperature, y = Weekly_Sales)) +
+  ggtitle("Temperature vs Weekly Sales") +
+  geom_point()
+
+scatter_1.9.2 <- ggplot(store_1.9, aes(x = Fuel_Price, y = Weekly_Sales)) +
+  ggtitle("Fuel Price vs Weekly Sales") +
+  geom_point()
+
+scatter_1.9.3 <- ggplot(store_1.9, aes(x = CPI, y = Weekly_Sales)) +
+  ggtitle("CPI vs Weekly Sales") +
+  geom_point()
+
+scatter_1.9.4 <- ggplot(store_1.9, aes(x = Unemployment, y = Weekly_Sales)) +
+  ggtitle("Unemployment vs Weekly Sales") +
+  geom_point()
+
+grid.arrange(scatter_1.9.1, scatter_1.9.2, scatter_1.9.3, scatter_1.9.4)
+
+scatter_1.10.1 <- ggplot(store_1.10, aes(x = Temperature, y = Weekly_Sales)) +
+  ggtitle("Temperature vs Weekly Sales") +
+  geom_point()
+
+scatter_1.10.2 <- ggplot(store_1.10, aes(x = Fuel_Price, y = Weekly_Sales)) +
+  ggtitle("Fuel Price vs Weekly Sales") +
+  geom_point()
+
+scatter_1.10.3 <- ggplot(store_1.10, aes(x = CPI, y = Weekly_Sales)) +
+  ggtitle("CPI vs Weekly Sales") +
+  geom_point()
+
+scatter_1.10.4 <- ggplot(store_1.10, aes(x = Unemployment, y = Weekly_Sales)) +
+  ggtitle("Unemployment vs Weekly Sales") +
+  geom_point()
+
+grid.arrange(scatter_1.10.1, scatter_1.10.2, scatter_1.10.3, scatter_1.10.4)
+
+scatter_1.11.1 <- ggplot(store_1.11, aes(x = Temperature, y = Weekly_Sales)) +
+  ggtitle("Temperature vs Weekly Sales") +
+  geom_point()
+
+scatter_1.11.2 <- ggplot(store_1.11, aes(x = Fuel_Price, y = Weekly_Sales)) +
+  ggtitle("Fuel Price vs Weekly Sales") +
+  geom_point()
+
+scatter_1.11.3 <- ggplot(store_1.11, aes(x = CPI, y = Weekly_Sales)) +
+  ggtitle("CPI vs Weekly Sales") +
+  geom_point()
+
+scatter_1.11.4 <- ggplot(store_1.11, aes(x = Unemployment, y = Weekly_Sales)) +
+  ggtitle("Unemployment vs Weekly Sales") +
+  geom_point()
+
+grid.arrange(scatter_1.11.1, scatter_1.11.2, scatter_1.11.3, scatter_1.11.4)
+
+scatter_1.12.1 <- ggplot(store_1.12, aes(x = Temperature, y = Weekly_Sales)) +
+  ggtitle("Temperature vs Weekly Sales") +
+  geom_point()
+
+scatter_1.12.2 <- ggplot(store_1.12, aes(x = Fuel_Price, y = Weekly_Sales)) +
+  ggtitle("Fuel Price vs Weekly Sales") +
+  geom_point()
+
+scatter_1.12.3 <- ggplot(store_1.12, aes(x = CPI, y = Weekly_Sales)) +
+  ggtitle("CPI vs Weekly Sales") +
+  geom_point()
+
+scatter_1.12.4 <- ggplot(store_1.12, aes(x = Unemployment, y = Weekly_Sales)) +
+  ggtitle("Unemployment vs Weekly Sales") +
+  geom_point()
+
+grid.arrange(scatter_1.12.1, scatter_1.12.2, scatter_1.12.3, scatter_1.12.4)
+
+scatter_1.13.1 <- ggplot(store_1.13, aes(x = Temperature, y = Weekly_Sales)) +
+  ggtitle("Temperature vs Weekly Sales") +
+  geom_point()
+
+scatter_1.13.2 <- ggplot(store_1.13, aes(x = Fuel_Price, y = Weekly_Sales)) +
+  ggtitle("Fuel Price vs Weekly Sales") +
+  geom_point()
+
+scatter_1.13.3 <- ggplot(store_1.13, aes(x = CPI, y = Weekly_Sales)) +
+  ggtitle("CPI vs Weekly Sales") +
+  geom_point()
+
+scatter_1.13.4 <- ggplot(store_1.13, aes(x = Unemployment, y = Weekly_Sales)) +
+  ggtitle("Unemployment vs Weekly Sales") +
+  geom_point()
+
+grid.arrange(scatter_1.13.1, scatter_1.13.2, scatter_1.13.3, scatter_1.13.4)
+```
+
+### Autocorrelation Plots of Weekly_Sales
+```{r}
+# department 1
+acf(ts(store_1.1$Weekly_Sales, start = c(2010), frequency = 52), lag = 52)
+pacf(ts(store_1.1$Weekly_Sales, start = c(2010), frequency = 52), lag.max = 140)
+
+#department 2
+acf(ts(store_1.2$Weekly_Sales, start = c(2010), frequency = 52), lag = 52)
+pacf(ts(store_1.2$Weekly_Sales, start = c(2010), frequency = 52), lag.max = 140)
+
+# department 3
+acf(ts(store_1.3$Weekly_Sales, start = c(2010), frequency = 52), lag = 52)
+pacf(ts(store_1.3$Weekly_Sales, start = c(2010), frequency = 52), lag.max = 140)
+
+# department 4
+acf(ts(store_1.4$Weekly_Sales, start = c(2010), frequency = 52), lag = 52)
+pacf(ts(store_1.4$Weekly_Sales, start = c(2010), frequency = 52), lag.max = 140)
+
+# department 5
+acf(ts(store_1.5$Weekly_Sales, start = c(2010), frequency = 52), lag =52)
+pacf(ts(store_1.5$Weekly_Sales, start = c(2010), frequency = 52), lag.max = 140)
+
+# department 6
+acf(ts(store_1.6$Weekly_Sales, start = c(2010), frequency = 52), lag = 52)
+pacf(ts(store_1.6$Weekly_Sales, start = c(2010), frequency = 52), lag.max = 140)
+
+# department 7
+acf(ts(store_1.7$Weekly_Sales, start = c(2010), frequency = 52), lag =52)
+pacf(ts(store_1.7$Weekly_Sales, start = c(2010), frequency = 52), lag.max = 140)
+
+# department 8
+acf(ts(store_1.8$Weekly_Sales, start = c(2010), frequency = 52), lag = 52)
+pacf(ts(store_1.8$Weekly_Sales, start = c(2010), frequency = 52), lag.max = 140)
+
+# department 9
+acf(ts(store_1.9$Weekly_Sales, start = c(2010), frequency = 52), lag =52)
+pacf(ts(store_1.9$Weekly_Sales, start = c(2010), frequency = 52), lag.max = 140)
+
+# department 10
+acf(ts(store_1.10$Weekly_Sales, start = c(2010), frequency = 52), lag = 52)
+pacf(ts(store_1.10$Weekly_Sales, start = c(2010), frequency = 52), lag.max = 140)
+
+# department 11
+acf(ts(store_1.11$Weekly_Sales, start = c(2010), frequency = 52), lag = 52)
+pacf(ts(store_1.11$Weekly_Sales, start = c(2010), frequency = 52), lag.max = 140)
+
+# department 12
+acf(ts(store_1.12$Weekly_Sales, start = c(2010), frequency = 52), lag = 52)
+pacf(ts(store_1.12$Weekly_Sales, start = c(2010), frequency = 52), lag.max = 140)
+
+# department 13
+acf(ts(store_1.13$Weekly_Sales, start = c(2010), frequency = 52), lag = 52)
+pacf(ts(store_1.13$Weekly_Sales, start = c(2010), frequency = 52), lag.max = 140)
+```
+
+## Data Cleaning:
+
+### Identifying and replacing outliers 
+```{r}
+# using tsclean function, which identifies and replaced outliers 
+store_1.1_clean <- tsclean(store_1.1_ts)
+store_1.2_clean <- tsclean(store_1.2_ts)
+store_1.3_clean <- tsclean(store_1.3_ts)
+store_1.4_clean <- tsclean(store_1.4_ts)
+store_1.5_clean <- tsclean(store_1.5_ts)
+store_1.6_clean <- tsclean(store_1.6_ts)
+store_1.7_clean <- tsclean(store_1.7_ts)
+store_1.8_clean <- tsclean(store_1.8_ts)
+store_1.9_clean <- tsclean(store_1.9_ts)
+store_1.10_clean <- tsclean(store_1.10_ts)
+store_1.11_clean <- tsclean(store_1.11_ts)
+store_1.12_clean <- tsclean(store_1.12_ts)
+store_1.13_clean <- tsclean(store_1.13_ts)
+```
+
+## Modeling:
+
+### Partitioning Data
+
+```{r}
+# store 1 dept 1
+training_1.1 <- window(store_1.1_clean, end = c(2012, 26))
+validation_1.1 <- window(store_1.1_clean, start = c(2012, 27))
+
+predictors_1.1 <- as.matrix(store_1.1["Temperature"][1:130,])
+
+# store 1 dept 2
+training_1.2 <- window(store_1.2_clean, end = c(2012, 26))
+validation_1.2 <- window(store_1.2_clean, start = c(2012, 27))
+
+predictors_1.2 <- as.matrix(store_1.2["Temperature"][1:130,])
+
+# store 1 dept 3
+training_1.3 <- window(store_1.3_clean, end = c(2012, 26))
+validation_1.3 <- window(store_1.3_clean, start = c(2012, 27))
+
+predictors_1.3 <- as.matrix(store_1.3["Temperature"][1:130,])
+
+# store 1 dept 4
+training_1.4 <- window(store_1.4_clean, end = c(2012, 26))
+validation_1.4 <- window(store_1.4_clean, start = c(2012, 27))
+
+predictors_1.4 <- as.matrix(store_1.4["Temperature"][1:130,])
+
+ # store 1 dept 5
+training_1.5 <- window(store_1.5_clean, end = c(2012, 26))
+validation_1.5 <- window(store_1.5_clean, start = c(2012, 27))
+
+predictors_1.5 <- as.matrix(store_1.5["Temperature"][1:130,])
+
+# store 1 dept 6
+training_1.6 <- window(store_1.6_clean, end = c(2012, 26))
+validation_1.6 <- window(store_1.6_clean, start = c(2012, 27))
+
+predictors_1.6 <- as.matrix(store_1.6["Temperature"][1:130,])
+
+# store 1 dept 7
+training_1.7 <- window(store_1.7_clean, end = c(2012, 26))
+validation_1.7 <- window(store_1.7_clean, start = c(2012, 27))
+
+predictors_1.7 <- as.matrix(store_1.7["Temperature"][1:130,])
+
+# store 1 dept 8
+training_1.8 <- window(store_1.8_clean, end = c(2012, 26))
+validation_1.8 <- window(store_1.8_clean, start = c(2012, 27))
+
+predictors_1.8 <- as.matrix(store_1.8["Temperature"][1:130,])
+
+# store 1 dept 9
+training_1.9 <- window(store_1.9_clean, end = c(2012, 26))
+validation_1.9 <- window(store_1.9_clean, start = c(2012, 27))
+
+predictors_1.9 <- as.matrix(store_1.9["Temperature"][1:130,])
+
+# store 1 dept 10
+training_1.10 <- window(store_1.10_clean, end = c(2012, 26))
+validation_1.10 <- window(store_1.10_clean, start = c(2012, 27))
+
+predictors_1.10 <- as.matrix(store_1.10["Temperature"][1:130,])
+
+# store 1 dept 11
+training_1.11 <- window(store_1.11_clean, end = c(2012, 26))
+validation_1.11 <- window(store_1.11_clean, start = c(2012, 27))
+
+predictors_1.11 <- as.matrix(store_1.11["Temperature"][1:130,])
+
+# store 1 dept 12
+training_1.12 <- window(store_1.12_clean, end = c(2012, 26))
+validation_1.12 <- window(store_1.12_clean, start = c(2012, 27))
+
+predictors_1.12 <- as.matrix(store_1.12["Temperature"][1:130,])
+
+# store 1 dept 13
+training_1.13 <- window(store_1.13_clean, end = c(2012, 26))
+validation_1.13 <- window(store_1.13_clean, start = c(2012, 27))
+
+predictors_1.13 <- as.matrix(store_1.13["Temperature"][1:130,])
+```
+
+#### Department 1 Models: 
+```{r}
+AutoArima_1.1 <- auto.arima(training_1.1, xreg = predictors_1.1) 
+summary(AutoArima_1.1)
+
+# ARIMA model parameters decided by the ACF and PACF plots above
+arima_1.1 <- Arima(training_1.1, xreg = predictors_1.1, order = c(0, 1, 3), seasonal = c(0, 1, 1))
+summary(arima_1.1)
+
+# prediction on the arima
+new.predictors_1.1 <- as.matrix(store_1.1["Temperature"][131:143,])
+forecast.arima.sales_1.1 <- forecast(arima_1.1, xreg = new.predictors_1.1)
+
+# plot of forecasted values
+autoplot(training_1.1, series = "Training") +
+  autolayer(forecast.arima.sales_1.1, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.1, series = "Validation") +
+  labs(title = "Dept. 1 ARIMA Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+```{r}
+# linear model
+temp_1.1 <- store_1.1[1:130, 6]
+linear_1.1 <- tslm(training_1.1 ~ trend + season + temp_1.1)
+summary(linear_1.1)
+
+# calculating RMSE
+sqrt(mean(linear_1.1$residuals^2))
+
+# forecasting 
+temp.new_1.1 <- store_1.1[131:143, 6]
+forecast.lm.sales_1.1 <- forecast(linear_1.1, temp.new_1.1, h = 13)
+forecast.lm.sales_1.1
+
+# plot of forecasted values
+autoplot(training_1.1, series = "Training") +
+  autolayer(forecast.lm.sales_1.1, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.1, series = "Validation") +
+  labs(title = "Dept. 1 LM Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+#### Department 2 Models: 
+```{r}
+# Auto ARIMA model
+AutoArima_1.2 <- auto.arima(training_1.2, xreg = predictors_1.2) 
+summary(AutoArima_1.2)
+
+# ARIMA model parameters decided by the ACF and PACF plots above
+arima_1.2 <- Arima(training_1.2, xreg = predictors_1.2, order = c(4, 1, 0), seasonal = c(1, 1, 1))
+summary(arima_1.2)
+
+# prediction on the arima
+new.predictors_1.2 <- as.matrix(store_1.2["Temperature"][131:143,])
+forecast.arima.sales_1.2 <- forecast(arima_1.2, xreg = new.predictors_1.2)
+forecast.arima.sales_1.2
+
+# plot of forecasted values
+autoplot(training_1.2, series = "Training") +
+  autolayer(forecast.arima.sales_1.2, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.2, series = "Validation") +
+  labs(title = "Dept. 2 ARIMA Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+```{r}
+# linear model
+temp_1.2 <- store_1.2[1:130, 6]
+linear_1.2 <- tslm(training_1.2 ~ trend + season + temp_1.2)
+summary(linear_1.2)
+
+# calculating RMSE
+sqrt(mean(linear_1.2$residuals^2))
+
+# forecasting 
+temp.new_1.2 <- store_1.2[131:143, 6]
+forecast.lm.sales_1.2 <- forecast(linear_1.2, temp.new_1.2, h = 13)
+forecast.lm.sales_1.2
+
+# plot of forecasted values
+autoplot(training_1.2, series = "Training") +
+  autolayer(forecast.lm.sales_1.2, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.2, series = "Validation") +
+  labs(title = "Dept. 2 LM Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+#### Department 3 Models: 
+```{r}
+# Auto ARIMA model
+AutoArima_1.3 <- auto.arima(training_1.3, xreg = predictors_1.3) 
+summary(AutoArima_1.3)
+
+# ARIMA model parameters decided by the ACF and PACF plots above
+arima_1.3 <- Arima(training_1.3, xreg = predictors_1.3, order = c(0, 1, 3), seasonal = c(0, 1, 1))
+summary(arima_1.3)
+
+# prediction on the arima
+new.predictors_1.3 <- as.matrix(store_1.3["Temperature"][131:143,])
+forecast.arima.sales_1.3 <- forecast(arima_1.3, xreg = new.predictors_1.3)
+forecast.arima.sales_1.3
+
+# plot of forecasted values
+autoplot(training_1.3, series = "Training") +
+  autolayer(forecast.arima.sales_1.3, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.3, series = "Validation") +
+  labs(title = "Dept. 3 ARIMA Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+```{r}
+# linear model
+temp_1.3 <- store_1.3[1:130, 6]
+linear_1.3 <- tslm(training_1.3 ~ trend + season + temp_1.3)
+summary(linear_1.3)
+
+# calculating RMSE
+sqrt(mean(linear_1.3$residuals^2))
+
+# forecasting 
+temp.new_1.3 <- store_1.3[131:143, 6]
+forecast.lm.sales_1.3 <- forecast(linear_1.3, temp.new_1.3, h = 13)
+forecast.lm.sales_1.3
+
+# plot of forecasted values
+autoplot(training_1.3, series = "Training") +
+  autolayer(forecast.lm.sales_1.3, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.3, series = "Validation") +
+  labs(title = "Dept. 3 LM Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+#### Department 4 Models: 
+```{r}
+# Auto ARIMA model
+AutoArima_1.4 <- auto.arima(training_1.4, xreg = predictors_1.4) 
+summary(AutoArima_1.4)
+
+# ARIMA model parameters decided by the ACF and PACF plots above
+arima_1.4 <- Arima(training_1.4, xreg = predictors_1.4, order = c(1, 1, 3), seasonal = c(0, 1, 1))
+summary(arima_1.4)
+
+# prediction on the arima
+new.predictors_1.4 <- as.matrix(store_1.4["Temperature"][131:143,])
+forecast.arima.sales_1.4 <- forecast(arima_1.4, xreg = new.predictors_1.4)
+
+# plot of forecasted values
+autoplot(training_1.4, series = "Training") +
+  autolayer(forecast.arima.sales_1.4, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.4, series = "Validation") +
+  labs(title = "Dept. 4 ARIMA Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+```{r}
+# linear model
+temp_1.4 <- store_1.4[1:130, 6]
+linear_1.4 <- tslm(training_1.4 ~ trend + season + temp_1.4)
+summary(linear_1.4)
+
+# calculating RMSE
+sqrt(mean(linear_1.4$residuals^2))
+
+# forecasting 
+temp.new_1.4 <- store_1.4[131:143, 6]
+forecast.lm.sales_1.4 <- forecast(linear_1.4, temp.new_1.4, h = 13)
+forecast.lm.sales_1.4
+
+# plot of forecasted values
+autoplot(training_1.4, series = "Training") +
+  autolayer(forecast.lm.sales_1.4, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.4, series = "Validation") +
+  labs(title = "Dept. 4 LM Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+#### Department 5 Models:
+```{r}
+# Auto ARIMA model
+#predictors.diff_1.1 <- diff(predictors_1.1)
+#training.diff_1.1 <- diff(training_1.1)
+AutoArima_1.5 <- auto.arima(training_1.5, xreg = predictors_1.5) 
+summary(AutoArima_1.5)
+
+# ARIMA model parameters decided by the ACF and PACF plots above
+arima_1.5 <- Arima(training_1.5, xreg = predictors_1.5, order = c(0, 0, 1), seasonal = c(0, 1, 1))
+summary(arima_1.5)
+
+# prediction on the arima
+new.predictors_1.5 <- as.matrix(store_1.5["Temperature"][131:143,])
+forecast.arima.sales_1.5 <- forecast(arima_1.5, xreg = new.predictors_1.5)
+
+# plot of forecasted values
+autoplot(training_1.5, series = "Training") +
+  autolayer(forecast.arima.sales_1.5, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.5, series = "Validation") +
+  labs(title = "Dept. 5 ARIMA Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+```{r}
+# linear model
+temp_1.5 <- store_1.5[1:130, 6]
+linear_1.5 <- tslm(training_1.5 ~ trend + season + temp_1.5)
+summary(linear_1.5)
+
+# calculating RMSE
+sqrt(mean(linear_1.5$residuals^2))
+
+# forecasting 
+temp.new_1.5 <- store_1.5[131:143, 6]
+forecast.lm.sales_1.5 <- forecast(linear_1.5, temp.new_1.5, h = 13)
+forecast.lm.sales_1.5
+
+# plot of forecasted values
+autoplot(training_1.5, series = "Training") +
+  autolayer(forecast.lm.sales_1.5, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.5, series = "Validation") +
+  labs(title = "Dept. 5 LM Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+#### Department 6 Models: 
+```{r}
+# Auto ARIMA model
+#predictors.diff_1.1 <- diff(predictors_1.1)
+#training.diff_1.1 <- diff(training_1.1)
+AutoArima_1.6 <- auto.arima(training_1.6, xreg = predictors_1.6) 
+summary(AutoArima_1.6)
+
+# ARIMA model parameters decided by the ACF and PACF plots above
+arima_1.6 <- Arima(training_1.6, xreg = predictors_1.6, order = c(2, 1, 3), seasonal = c(0, 1, 1))
+summary(arima_1.6)
+
+# prediction on the arima
+new.predictors_1.6 <- as.matrix(store_1.6["Temperature"][131:143,])
+forecast.arima.sales_1.6 <- forecast(arima_1.6, xreg = new.predictors_1.6)
+
+# plot of forecasted values
+autoplot(training_1.6, series = "Training") +
+  autolayer(forecast.arima.sales_1.6, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.6, series = "Validation") +
+  labs(title = "Dept. 6 ARIMA Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+```{r}
+# linear model
+temp_1.6 <- store_1.6[1:130, 6]
+linear_1.6 <- tslm(training_1.6 ~ trend + season + temp_1.6)
+summary(linear_1.6)
+
+# calculating RMSE
+sqrt(mean(linear_1.6$residuals^2))
+
+# forecasting 
+temp.new_1.6 <- store_1.6[131:143, 6]
+forecast.lm.sales_1.6 <- forecast(linear_1.6, temp.new_1.6, h = 13)
+forecast.lm.sales_1.6
+
+# plot of forecasted values
+autoplot(training_1.6, series = "Training") +
+  autolayer(forecast.lm.sales_1.6, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.6, series = "Validation") +
+  labs(title = "Dept. 6 LM Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+#### Department 7 Models: 
+```{r}
+# Auto ARIMA model
+#predictors.diff_1.1 <- diff(predictors_1.1)
+#training.diff_1.1 <- diff(training_1.1)
+AutoArima_1.7 <- auto.arima(training_1.7, xreg = predictors_1.7) 
+summary(AutoArima_1.7)
+
+# ARIMA model parameters decided by the ACF and PACF plots above
+arima_1.7 <- Arima(training_1.7, xreg = predictors_1.7, order = c(2, 0, 1), seasonal = c(1, 1, 0))
+summary(arima_1.7)
+
+# prediction on the arima
+new.predictors_1.7 <- as.matrix(store_1.7["Temperature"][131:143,])
+forecast.arima.sales_1.7 <- forecast(arima_1.7, xreg = new.predictors_1.7)
+
+# plot of forecasted values
+autoplot(training_1.7, series = "Training") +
+  autolayer(forecast.arima.sales_1.7, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.7, series = "Validation") +
+  labs(title = "Dept. 7 ARIMA Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+```{r}
+# linear model
+temp_1.7 <- store_1.7[1:130, 6]
+linear_1.7 <- tslm(training_1.7 ~ trend + season + temp_1.7)
+summary(linear_1.7)
+
+# calculating RMSE
+sqrt(mean(linear_1.7$residuals^2))
+
+# forecasting 
+temp.new_1.7 <- store_1.7[131:143, 6]
+forecast.lm.sales_1.7 <- forecast(linear_1.7, temp.new_1.7, h = 13)
+forecast.lm.sales_1.7
+
+# plot of forecasted values
+autoplot(training_1.7, series = "Training") +
+  autolayer(forecast.lm.sales_1.7, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.7, series = "Validation") +
+  labs(title = "Dept. 7 LM Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+#### Department 8 Models: 
+```{r}
+# Auto ARIMA model
+#predictors.diff_1.1 <- diff(predictors_1.1)
+#training.diff_1.1 <- diff(training_1.1)
+AutoArima_1.8 <- auto.arima(training_1.8, xreg = predictors_1.8) 
+summary(AutoArima_1.8)
+
+# ARIMA model parameters decided by the ACF and PACF plots above
+arima_1.8 <- Arima(training_1.8, xreg = predictors_1.8, order = c(1, 1, 1), seasonal = c(0, 1, 1))
+summary(arima_1.8)
+
+# prediction on the arima
+new.predictors_1.8 <- as.matrix(store_1.8["Temperature"][131:143,])
+forecast.arima.sales_1.8 <- forecast(arima_1.8, xreg = new.predictors_1.8)
+
+# plot of forecasted values
+autoplot(training_1.8, series = "Training") +
+  autolayer(forecast.arima.sales_1.8, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.8, series = "Validation") +
+  labs(title = "Dept. 8 ARIMA Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+```{r}
+# linear model
+temp_1.8 <- store_1.8[1:130, 6]
+linear_1.8 <- tslm(training_1.8 ~ trend + season + temp_1.8)
+summary(linear_1.8)
+
+# calculating RMSE
+sqrt(mean(linear_1.8$residuals^2))
+
+# forecasting 
+temp.new_1.8 <- store_1.8[131:143, 6]
+forecast.lm.sales_1.8 <- forecast(linear_1.8, temp.new_1.8, h = 13)
+forecast.lm.sales_1.8
+
+# plot of forecasted values
+autoplot(training_1.8, series = "Training") +
+  autolayer(forecast.lm.sales_1.8, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.8, series = "Validation") +
+  labs(title = "Dept. 8 LM Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+#### Department 9 Models: 
+```{r}
+# Auto ARIMA model
+#predictors.diff_1.1 <- diff(predictors_1.1)
+#training.diff_1.1 <- diff(training_1.1)
+AutoArima_1.9 <- auto.arima(training_1.9, xreg = predictors_1.9) 
+summary(AutoArima_1.9)
+
+# ARIMA model parameters decided by the ACF and PACF plots above
+arima_1.9 <- Arima(training_1.9, xreg = predictors_1.9, order = c(0, 1, 4), seasonal = c(0, 1, 1))
+summary(arima_1.9)
+
+# prediction on the arima
+new.predictors_1.9 <- as.matrix(store_1.9["Temperature"][131:143,])
+forecast.arima.sales_1.9 <- forecast(arima_1.9, xreg = new.predictors_1.9)
+
+# plot of forecasted values
+autoplot(training_1.9, series = "Training") +
+  autolayer(forecast.arima.sales_1.9, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.9, series = "Validation") +
+  labs(title = "Dept. 9 ARIMA Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+```{r}
+# linear model
+temp_1.9 <- store_1.9[1:130, 6]
+linear_1.9 <- tslm(training_1.9 ~ trend + season + temp_1.9)
+summary(linear_1.9)
+
+# calculating RMSE
+sqrt(mean(linear_1.9$residuals^2))
+
+# forecasting 
+temp.new_1.9 <- store_1.9[131:143, 6]
+forecast.lm.sales_1.9 <- forecast(linear_1.9, temp.new_1.9, h = 13)
+forecast.lm.sales_1.9
+
+# plot of forecasted values
+autoplot(training_1.9, series = "Training") +
+  autolayer(forecast.lm.sales_1.9, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.9, series = "Validation") +
+  labs(title = "Dept. 9 LM Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+#### Department 10 Models: 
+```{r}
+# Auto ARIMA model
+#predictors.diff_1.1 <- diff(predictors_1.1)
+#training.diff_1.1 <- diff(training_1.1)
+AutoArima_1.10 <- auto.arima(training_1.10, xreg = predictors_1.10) 
+summary(AutoArima_1.10)
+
+# ARIMA model parameters decided by the ACF and PACF plots above
+arima_1.10 <- Arima(training_1.10, xreg = predictors_1.10, order = c(1, 0, 4), seasonal = c(0, 1, 2))
+summary(arima_1.10)
+
+# prediction on the arima
+new.predictors_1.10 <- as.matrix(store_1.10["Temperature"][131:143,])
+forecast.arima.sales_1.10 <- forecast(arima_1.10, xreg = new.predictors_1.10)
+
+# plot of forecasted values
+autoplot(training_1.10, series = "Training") +
+  autolayer(forecast.arima.sales_1.10, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.10, series = "Validation") +
+  labs(title = "Dept. 10 ARIMA Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+```{r}
+# linear model
+temp_1.10 <- store_1.10[1:130, 6]
+linear_1.10 <- tslm(training_1.10 ~ trend + season + temp_1.10)
+summary(linear_1.10)
+
+# calculating RMSE
+sqrt(mean(linear_1.10$residuals^2))
+
+# forecasting 
+temp.new_1.10 <- store_1.10[131:143, 6]
+forecast.lm.sales_1.10 <- forecast(linear_1.10, temp.new_1.10, h = 13)
+forecast.lm.sales_1.10
+
+# plot of forecasted values
+autoplot(training_1.10, series = "Training") +
+  autolayer(forecast.lm.sales_1.10, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.10, series = "Validation") +
+  labs(title = "Dept. 10 LM Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+#### Department 11 Models: 
+```{r}
+# Auto ARIMA model
+#predictors.diff_1.1 <- diff(predictors_1.1)
+#training.diff_1.1 <- diff(training_1.1)
+AutoArima_1.11 <- auto.arima(training_1.11, xreg = predictors_1.11) 
+summary(AutoArima_1.11)
+
+# ARIMA model parameters decided by the ACF and PACF plots above
+arima_1.11 <- Arima(training_1.11, xreg = predictors_1.11, order = c(0, 1, 2), seasonal = c(1, 1, 0))
+summary(arima_1.11)
+
+# prediction on the arima
+new.predictors_1.11 <- as.matrix(store_1.11["Temperature"][131:143,])
+forecast.arima.sales_1.11 <- forecast(arima_1.11, xreg = new.predictors_1.11)
+
+# plot of forecasted values
+autoplot(training_1.11, series = "Training") +
+  autolayer(forecast.arima.sales_1.11, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.11, series = "Validation") +
+  labs(title = "Dept. 11 ARIMA Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+```{r}
+# linear model
+temp_1.11 <- store_1.11[1:130, 6]
+linear_1.11 <- tslm(training_1.11 ~ trend + season + temp_1.11)
+summary(linear_1.11)
+
+# calculating RMSE
+sqrt(mean(linear_1.11$residuals^2))
+
+# forecasting 
+temp.new_1.11 <- store_1.11[131:143, 6]
+forecast.lm.sales_1.11 <- forecast(linear_1.11, temp.new_1.11, h = 13)
+forecast.lm.sales_1.11
+
+# plot of forecasted values
+autoplot(training_1.11, series = "Training") +
+  autolayer(forecast.lm.sales_1.11, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.11, series = "Validation") +
+  labs(title = "Dept. 11 LM Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+#### Department 12 Models: 
+```{r}
+# Auto ARIMA model
+#predictors.diff_1.1 <- diff(predictors_1.1)
+#training.diff_1.1 <- diff(training_1.1)
+AutoArima_1.12 <- auto.arima(training_1.12, xreg = predictors_1.12) 
+summary(AutoArima_1.12)
+
+# ARIMA model parameters decided by the ACF and PACF plots above
+arima_1.12 <- Arima(training_1.12, xreg = predictors_1.12, order = c(0, 1, 5), seasonal = c(0, 1, 1))
+summary(arima_1.12)
+
+# prediction on the arima
+new.predictors_1.12 <- as.matrix(store_1.12["Temperature"][131:143,])
+forecast.arima.sales_1.12 <- forecast(arima_1.12, xreg = new.predictors_1.12)
+
+# plot of forecasted values
+autoplot(training_1.12, series = "Training") +
+  autolayer(forecast.arima.sales_1.12, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.12, series = "Validation") +
+  labs(title = "Dept. 12 ARIMA Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+```{r}
+# linear model
+temp_1.12 <- store_1.12[1:130, 6]
+linear_1.12 <- tslm(training_1.12 ~ trend + season + temp_1.12)
+summary(linear_1.12)
+
+# calculating RMSE
+sqrt(mean(linear_1.12$residuals^2))
+
+# forecasting 
+temp.new_1.12 <- store_1.12[131:143, 6]
+forecast.lm.sales_1.12 <- forecast(linear_1.12, temp.new_1.12, h = 13)
+forecast.lm.sales_1.12
+
+# plot of forecasted values
+autoplot(training_1.12, series = "Training") +
+  autolayer(forecast.lm.sales_1.12, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.12, series = "Validation") +
+  labs(title = "Dept. 12 LM Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+#### Department 13 Models: 
+```{r}
+# Auto ARIMA model
+#predictors.diff_1.1 <- diff(predictors_1.1)
+#training.diff_1.1 <- diff(training_1.1)
+AutoArima_1.13 <- auto.arima(training_1.13, xreg = predictors_1.13) 
+summary(AutoArima_1.13)
+
+# ARIMA model parameters decided by the ACF and PACF plots above
+arima_1.13 <- Arima(training_1.13, xreg = predictors_1.13, order = c(0, 1, 3), seasonal = c(0, 1, 1))
+summary(arima_1.13)
+
+# prediction on the arima
+new.predictors_1.13 <- as.matrix(store_1.13["Temperature"][131:143,])
+forecast.arima.sales_1.13 <- forecast(arima_1.13, xreg = new.predictors_1.13)
+
+# plot of forecasted values
+autoplot(training_1.13, series = "Training") +
+  autolayer(forecast.arima.sales_1.13, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.13, series = "Validation") +
+  labs(title = "Dept. 13 ARIMA Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+```{r}
+# linear model
+temp_1.13 <- store_1.13[1:130, 6]
+linear_1.13 <- tslm(training_1.13 ~ trend + season + temp_1.13)
+summary(linear_1.13)
+
+# calculating RMSE
+sqrt(mean(linear_1.13$residuals^2))
+
+# forecasting 
+temp.new_1.13 <- store_1.13[131:143, 6]
+forecast.lm.sales_1.13 <- forecast(linear_1.13, temp.new_1.13, h = 13)
+forecast.lm.sales_1.13
+
+# plot of forecasted values
+autoplot(training_1.13, series = "Training") +
+  autolayer(forecast.lm.sales_1.13, alpha = 0.3, series = "Forecasts") +
+  autolayer(validation_1.13, series = "Validation") +
+  labs(title = "Dept. 13 LM Model Forecasted Sales",
+       x = "Time",
+       y = "Weekly Sales") +
+    theme_classic()
+```
+
+### Model Forecasts
+
+```{r}
+accuracy(forecast.arima.sales_1.1, validation_1.1)
+
+accuracy(forecast.arima.sales_1.2, validation_1.2)
+
+accuracy(forecast.arima.sales_1.3, validation_1.3)
+
+accuracy(forecast.arima.sales_1.4, validation_1.4)
+
+accuracy(forecast.arima.sales_1.5, validation_1.5)
+
+accuracy(forecast.arima.sales_1.6, validation_1.6)
+
+accuracy(forecast.arima.sales_1.7, validation_1.7)
+
+accuracy(forecast.arima.sales_1.8, validation_1.8)
+
+accuracy(forecast.arima.sales_1.9, validation_1.9)
+
+accuracy(forecast.arima.sales_1.10, validation_1.10)
+
+accuracy(forecast.arima.sales_1.11, validation_1.11)
+
+accuracy(forecast.arima.sales_1.12, validation_1.12)
+
+accuracy(forecast.arima.sales_1.13, validation_1.13)
+```
+
